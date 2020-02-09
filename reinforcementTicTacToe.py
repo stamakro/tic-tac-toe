@@ -3,8 +3,6 @@ from libs import *
 from copy import deepcopy
 
 
-np.random.seed(1991)
-
 grid = np.array([[0 for i in range (3)] for j in range(3)])
 
 cross = 1

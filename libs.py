@@ -3,6 +3,11 @@ from copy import deepcopy
 
 
 def haveIseenIt(grid, hashes):
+	'''
+	Determine if a particular board configuration has been observed before
+
+
+	'''
 
 	if hashGrid(grid) in hashes:
 		return grid, 0
