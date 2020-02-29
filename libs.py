@@ -2,47 +2,167 @@ import numpy as np
 from copy import deepcopy
 
 
-def haveIseenIt(grid, hashes):
-	'''
-	Determine if a particular board configuration has been observed before
+class TTTboard():
+	def __init__(self):
+		self.grid = np.zeros((3,3), int)
+		self.symbols = {'o': 2, 'x': 1, ' ': 0}
+		self.gameOver = False
+		self.winner = None
 
 
-	'''
+	def checkForWin(self, player):
 
-	if hashGrid(grid) in hashes:
-		return grid, 0
+		assert player == 'o' or player == 'x'
 
+		target = np.ones(3, int) * self.symbols[player]
 
-	if hashGrid(np.flipud(grid)) in hashes:
-		return np.flipud(grid), 1
-
-
-	if hashGrid(np.fliplr(grid)) in hashes:
-		return np.fliplr(grid), 2
-
-	if hashGrid(np.flipud(np.fliplr(grid))) in hashes:
-		return np.flipud(np.fliplr(grid)), 3
+		if (self.grid[0] == target).all() or (self.grid[1] == target).all() or (self.grid[2] == target).all() or (self.grid.T[0] == target).all() or (self.grid.T[1] == target).all() or (self.grid.T[2] == target).all():
+			self.gameOver = True
+			self.winner = player
 
 
-	grid90 = np.rot90(grid)
-
-	if hashGrid(grid90) in hashes:
-		return grid90, 4
-
-
-	if hashGrid(np.fliplr(grid90)) in hashes:
-		return np.fliplr(grid90), 5
-
-	if hashGrid(np.flipud(grid90)) in hashes:
-		return np.flipud(grid90), 6
+		if (np.diag(self.grid) == target).all() or (np.diag(np.fliplr(self.grid)) == target).all():
+			self.gameOver = True
+			self.winner = player
 
 
-	grid270 = np.rot90(np.rot90(grid90))
 
-	if hashGrid(grid270) in hashes:
-		return grid270, 7
+	def over(self):
+		if not self.gameOver and np.min(self.grid) > 0:
+			self.gameOver = True
 
-	return grid, -1
+
+	def isValidMove(self, (i,j)):
+		return self.grid[i,j] == 0
+
+	def makeMove(self, player, mv):
+		(i, j) = mv
+		if not self.grid[i,j]:
+			self.grid[i,j] = self.symbols[player]
+
+		else:
+			print('invalid move')
+			sys.exit(1)
+
+		return grid
+
+
+	def getGrid(self, player):
+		#each player wants to see themselves as 1 and the opponent as 2
+		if self.symbols[player] == 1:
+			return self.grid
+
+		ii, jj = np.where(self.grid > 0)
+		tempGrid = deepcopy(self.grid)
+		tempGrid[ii, jj] = 3 - self.grid[ii, jj]
+
+		return tempGrid
+
+
+
+
+	@staticmethod
+	def hashGrid(grid):
+
+		'''
+		Creates a unique hash code for a given board configuration.
+		This is done by converting the board values (0 for empty, 1 for cross, 2 for circle) into an integer in base 3
+
+		INPUT
+		grid:   3x3 numpy array containing a valid tic-tac-toe board
+
+		RETURNS
+		The hash value (in base 10)
+
+		'''
+
+		return int(str(grid[2,2]) + str(grid[2,1]) + str(grid[2,0]) + str(grid[1,2]) + str(grid[1,1]) + str(grid[1,0]) + str(grid[0,2]) + str(grid[0,1]) + str(grid[0,0]) , 3)
+
+	@staticmethod
+	def unhash(nr):
+		grid = np.zeros((3,3), int)
+		pos = [(0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2)]
+		#grid[0,0] = hash % 3
+		cnt = 0
+
+		while nr > 0:
+			grid[pos[cnt]] = nr % 3
+
+			nr = nr / 3
+			cnt += 1
+
+
+		return grid
+
+
+
+class Player():
+	def __init__(self, symbol):
+		assert symbol == 'o' or symbol == 'x'
+		self.symbol = symbol
+
+
+	def getValidMoves(grid):
+		[xx, yy] = np.where(grid == 0)
+
+
+		mv = []
+		for (x,y) in zip (xx, yy):
+			mv.append((x,y))
+
+		return mv
+
+
+
+
+	def haveIseenIt(grid, hashes):
+		'''
+		Determine if a particular board configuration (or any equivalent to it due to symmetry) has been observed before
+
+		INPUTS:
+		grid:   3x3 numpy array containing a valid tic-tac-toe board
+		hashes: set of all the hash values of all the board configurations that have been observed
+
+		RETRUNS:
+		grid:
+
+
+		'''
+
+		if hashGrid(grid) in hashes:
+			return grid, 0
+
+
+		if hashGrid(np.flipud(grid)) in hashes:
+			return np.flipud(grid), 1
+
+
+		if hashGrid(np.fliplr(grid)) in hashes:
+			return np.fliplr(grid), 2
+
+		if hashGrid(np.flipud(np.fliplr(grid))) in hashes:
+			return np.flipud(np.fliplr(grid)), 3
+
+
+		grid90 = np.rot90(grid)
+
+		if hashGrid(grid90) in hashes:
+			return grid90, 4
+
+
+		if hashGrid(np.fliplr(grid90)) in hashes:
+			return np.fliplr(grid90), 5
+
+		if hashGrid(np.flipud(grid90)) in hashes:
+			return np.flipud(grid90), 6
+
+
+		grid270 = np.rot90(np.rot90(grid90))
+
+		if hashGrid(grid270) in hashes:
+			return grid270, 7
+
+		return grid, -1
 
 
 
@@ -139,90 +259,6 @@ def removeRedundantMoves(grid, possibleMoves):
 
 
 
-
-def hashGrid(grid):
-
-
-	return int(str(grid[2,2]) + str(grid[2,1]) + str(grid[2,0]) + str(grid[1,2]) + str(grid[1,1]) + str(grid[1,0]) + str(grid[0,2]) + str(grid[0,1]) + str(grid[0,0]) , 3)
-
-
-def unhash(nr):
-	grid = np.zeros((3,3), int)
-	pos = [(0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2)]
-	#grid[0,0] = hash % 3
-	cnt = 0
-
-	while nr > 0:
-		grid[pos[cnt]] = nr % 3
-
-		nr = nr / 3
-		cnt += 1
-
-
-	return grid
-
-
-
-def win(grid, player):
-
-	assert player == 1 or player == 2
-
-	target = np.ones(3) * player
-
-	if (grid[0] == target).all() or (grid[1] == target).all() or (grid[2] == target).all() or (grid.T[0] == target).all() or (grid.T[1] == target).all() or (grid.T[2] == target).all():
-		return True
-
-	if (np.diag(grid) == target).all() or (np.diag(np.fliplr(grid)) == target).all():
-		return True
-
-
-	return False
-
-
-def over(grid):
-	if np.min(grid) > 0:
-		return True
-
-	if win(grid, 1):
-		return True
-
-	return False
-
-
-
-
-def isValidMove(grid, (i,j)):
-	return grid[i,j] == 0
-
-def makeMove(grid, player, (i,j)):
-	if not grid[i,j]:
-		grid[i,j] = player
-
-	else:
-		print 'invalid move'
-		sys.exit(1)
-
-	return grid
-
-def getValidMoves(grid):
-	[xx, yy] = np.where(grid == 0)
-
-
-	mv = []
-	for (x,y) in zip (xx, yy):
-		mv.append((x,y))
-
-	return mv
-
-
-def flip(grid):
-	assoi = np.where(grid == 1)
-	dyaria = np.where(grid == 2)
-
-	grid[assoi] = 2
-	grid[dyaria] = 1
-
-	return grid
 
 
 def bestMoveRnd(hh, possibleMoves, stateAndMove):

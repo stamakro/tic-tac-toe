@@ -14,7 +14,7 @@ numberVisits = np.zeros((nStates,), int)
 totalReturn = np.zeros((nStates,))
 impossible = np.zeros((nStates,), bool)
 
-for i in xrange(impossible.shape[0]):
+for i in range(impossible.shape[0]):
     if impossibleState(unhash(i)):
         impossible[i] = True
 
@@ -28,9 +28,9 @@ startExploitingEpoch = 150000
 
 quit = False
 
-for game in xrange(nGames):
+for game in range(nGames):
 	if game % 10000 == 0:
-		print game
+		 game
 
 	if game == startExploitingEpoch:
 		explorationProbability = 0.1
@@ -114,9 +114,9 @@ for game in xrange(nGames):
 
 
 explorationProbability = 0.05
-for game in xrange(nGames):
+for game in range(nGames):
 	if game % 10000 == 0:
-		print game
+		print(game)
 
 
 	turn = -1
